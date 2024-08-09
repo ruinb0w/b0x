@@ -6,6 +6,7 @@ let cursor = 0;
 export function injectInputHanlder(xterm: Terminal) {
   xterm.onData((data: any) => {
     const code = data.charCodeAt(0);
+    console.log("code", code);
 
     if (code == 27) {
       // handle arrow
@@ -26,8 +27,6 @@ export function injectInputHanlder(xterm: Terminal) {
     } else if (code == 13) {
       // handle Enter
       window.ipcRenderer.send("shell", input);
-      xterm.write("\r\nYou typed: '" + input + "'\r\n");
-      xterm.write("~$ ");
       input = "";
       cursor = 0;
     } else if (code == 127) {
@@ -44,6 +43,9 @@ export function injectInputHanlder(xterm: Terminal) {
         xterm.write("\u0008 \u0008");
       }
       cursor--;
+    } else if (code == 27) {
+      console.log("send esc");
+      window.ipcRenderer.send("shell", data);
     } else if (code < 32) {
       // ignore special key
       return;

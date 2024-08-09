@@ -1,4 +1,5 @@
 import type { BrowserWindow } from "electron";
+import { stdout } from "node:process";
 import * as os from "node:os";
 // @ts-ignore
 import * as pty from "node-pty";
@@ -17,12 +18,11 @@ export function usePty(win: BrowserWindow | null) {
   });
 
   ptyProcess.onData((data: string) => {
-    // process.stdout.write(data);
     win?.webContents.send("shell", data);
   });
 
   ipcMain.on("shell", (_event, data: string) => {
     console.log("shell", data);
-    ptyProcess.write(data);
+    ptyProcess.write(`${data}\r`);
   });
 }

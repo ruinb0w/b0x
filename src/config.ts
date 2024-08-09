@@ -6,6 +6,8 @@ export const APPS: App[] = [
   { id: 3, name: "AI", path: "/ai", componentPath: "AiPage/AiPage" },
   { id: 4, name: "Office", path: "/office", componentPath: "OfficePage/OfficePage" },
   { id: 5, name: "File", path: "/file", componentPath: "FileExplorer/FileExplorer" },
+  { id: 6, name: "Photo", path: "/photo", componentPath: "PsApp/PsApp" },
+  { id: 7, name: "ApiTest", path: "/apitest", componentPath: "ApiTest/ApiTest" },
 ];
 
 export const AI_CONFIGS = {
