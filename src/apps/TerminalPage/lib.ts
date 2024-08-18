@@ -1,67 +1,102 @@
-import type { Terminal } from "@xterm/xterm";
+import "@xterm/xterm/css/xterm.css";
+import "@xterm/xterm/lib/xterm.js";
+import { FitAddon } from "@xterm/addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { nextTick, ref } from "vue";
 
-let input = "";
-let cursor = 0;
+export interface Pty {
+  pid: number;
+  process: string;
+}
 
-export function injectInputHanlder(xterm: Terminal) {
-  xterm.onData((data: any) => {
-    const code = data.charCodeAt(0);
-    console.log("code", code);
+export interface Xterm {
+  pid: number;
+  title: string;
+  terminal: Terminal | null;
+}
 
-    if (code == 27) {
-      // handle arrow
-      switch (data.substring(1)) {
-        case "[C": // Right arrow
-          if (cursor < input.length) {
-            cursor += 1;
-            xterm.write(data);
-          }
-          break;
-        case "[D": // Left arrow
-          if (cursor > 0) {
-            cursor -= 1;
-            xterm.write(data);
-          }
-          break;
-      }
-    } else if (code == 13) {
-      // handle Enter
-      window.ipcRenderer.send("shell", input);
-      input = "";
-      cursor = 0;
-    } else if (code == 127) {
-      // handle backspace
-      if (cursor < 1) return;
-      if (cursor < input.length) {
-        const spaceLen = input.length - cursor;
-        xterm.write(
-          `\u0008${input.substring(cursor)}${" ".repeat(spaceLen)}\u001b[${spaceLen * 2}D`
-        );
-        input = input.substring(0, cursor - 1) + input.substring(cursor);
-      } else {
-        input = input.substring(0, input.length - 1);
-        xterm.write("\u0008 \u0008");
-      }
-      cursor--;
-    } else if (code == 27) {
-      console.log("send esc");
-      window.ipcRenderer.send("shell", data);
-    } else if (code < 32) {
-      // ignore special key
-      return;
-    } else {
-      if (cursor < input.length) {
-        xterm.write(`${data}${input.substring(cursor)}\u001b[${input.length - cursor}D`);
-      } else {
-        xterm.write(data);
-      }
-      input = input.substring(0, cursor) + data + input.substring(cursor);
-      cursor += 1;
-    }
+export function useXterm() {
+  const terminals = ref<Xterm[]>([]);
+  const current = ref<Xterm>();
+
+  window.ipcRenderer.on("pty-list", (_event, data: { list: Pty[]; newPid?: number }) => {
+    const { list, newPid } = data;
+    console.log("pty-list", list);
+    if (!newPid) return;
+    terminals.value.push({ pid: newPid, title: "", terminal: null });
+    nextTick(() => {
+      createXterm(newPid);
+    });
   });
+
+  window.ipcRenderer.on("xterm-write", (_event, data: { content: string; pid: number }) => {
+    const { content, pid } = data;
+    console.log("xterm-write", data);
+    const target = terminals.value.find((term) => term.pid == pid);
+    target?.terminal?.write(content);
+  });
+
+  function createXterm(pid: number) {
+    const container = document.querySelector(`.terminal-container.pid-${pid}`);
+    console.log("container", container);
+    if (!container) return;
+    const term = new Terminal({
+      cursorBlink: true,
+      disableStdin: false,
+      fontSize: 16,
+      fontFamily: "GeistMono Nerd Font",
+      theme: { background: "#222835" },
+    });
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(container as HTMLElement);
+    term.onResize((size) => {
+      term.resize(size.cols, size.rows);
+    });
+    term.onData((content: any) => {
+      window.ipcRenderer.send("pty-write", { content, pid });
+    });
+    term.onResize((size) => {
+      window.ipcRenderer.send("pty-resize", {
+        cols: size.cols,
+        rows: size.rows,
+        pid,
+      });
+    });
+    term.onTitleChange((title) => {
+      const target = terminals.value.find((term) => term.pid == pid);
+      if (!target) return;
+      target.title = title;
+    });
+    window.addEventListener("resize", () => {
+      fitAddon.fit();
+    });
+    fitAddon.fit();
+    window.ipcRenderer.send("pty-write", { content: "clear\r", pid });
+    const target = terminals.value.find((term) => term.pid == pid);
+    if (!target) return;
+    target.terminal = term;
+    current.value = target;
+  }
+
+  function switchCurrent(pid: number) {
+    const target = terminals.value.find((term) => term.pid == pid);
+    if (!target) return;
+    current.value = target;
+  }
+  function createPty() {
+    window.ipcRenderer.send("pty-create");
+  }
+  function removePty(pid: number) {
+    window.ipcRenderer.send("pty-remove", pid);
+  }
+
+  return { createXterm, terminals, current, switchCurrent, createPty, removePty };
 }
 
 export function injectCombinationKeyHandler(xterm: Terminal) {
+  let input = "";
+  let cursor = 0;
   // handle copy
   xterm.attachCustomKeyEventHandler((arg) => {
     if (arg.ctrlKey && arg.key === "c" && arg.type === "keydown") {

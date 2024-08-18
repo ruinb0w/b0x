@@ -10,6 +10,8 @@ export const APPS: App[] = [
   { id: 7, name: "ApiTest", path: "/apitest", componentPath: "ApiTest/ApiTest" },
 ];
 
+export const Plugins = [{ id: 1, name: "Todo", icon: "icon-todolist" }];
+
 export const AI_CONFIGS = {
   QW: {
     URL: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",

@@ -1,31 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { Terminal } from "@xterm/xterm";
-import { FitAddon } from "@xterm/addon-fit";
-import "@xterm/xterm/css/xterm.css";
-import "@xterm/xterm/lib/xterm.js";
-import { injectInputHanlder, injectCombinationKeyHandler } from "./lib";
+import { onMounted } from "vue";
+import { useXterm } from "./lib";
 
-const terminal = ref<HTMLElement | null>(null);
-const fitAddon = new FitAddon();
-const xterm = new Terminal({ cursorBlink: true, disableStdin: false });
-xterm.loadAddon(fitAddon);
+const xterm = useXterm();
 
-onMounted(async () => {
-  xterm.open(terminal.value as HTMLElement);
-  fitAddon.fit();
-  xterm.write("~$ ");
-  injectInputHanlder(xterm);
-  injectCombinationKeyHandler(xterm);
-  window.ipcRenderer.on("shell", (_event, data) => {
-    xterm.write(data);
-  });
+onMounted(() => {
+  xterm.createPty();
 });
 </script>
 
 <template>
   <div class="terminal-page">
-    <div ref="terminal" style="width: 100%; height: 100%"></div>
+    <div class="tabs">
+      <div
+        :class="['tab', { active: xterm.current.value?.pid == item.pid }]"
+        @click="xterm.switchCurrent(item.pid)"
+        v-for="(item, i) in xterm.terminals.value"
+        :key="i"
+      >
+        {{ item.title }}
+      </div>
+      <div class="tab" @click="xterm.createPty">add</div>
+    </div>
+    <div
+      v-for="(item, i) in xterm.terminals.value"
+      v-show="xterm.current.value?.pid == item.pid"
+      :key="i"
+      :class="['terminal-container', `pid-${item.pid}`]"
+    ></div>
   </div>
 </template>
 
@@ -33,5 +35,26 @@ onMounted(async () => {
 .terminal-page {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  .tabs {
+    display: flex;
+    border-top: 1px solid #999;
+    .tab {
+      padding: 5px 10px;
+      cursor: pointer;
+      max-width: 10rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.8rem;
+    }
+    .tab.active {
+      font-weight: bold;
+    }
+  }
+  .terminal-container {
+    flex: 1;
+  }
 }
 </style>

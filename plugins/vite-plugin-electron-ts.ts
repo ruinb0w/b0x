@@ -43,15 +43,16 @@ export function vitePluginElectronTs(options: Options) {
     if (filename) {
       filesToCompile.push(filename);
     } else {
-      filesToCompile = readDirRecursively(options.dir);
+      filesToCompile = readDirRecursively(options.dir).map((file) =>
+        file.replace(`${options.dir}/`, "")
+      );
     }
-
-    for (const file of filesToCompile) {
+    for (let file of filesToCompile) {
+      console.log("file", file);
       if (filter(file)) {
         // 没有指定filename时, readDirRecursively会返回带options.dir的路径, 所以不需要再join
-        const sourceFile = filename ? path.join(options.dir, file) : file;
+        const sourceFile = path.join(options.dir, file);
         const targetFile = path.join(options.distDir, file.replace(/\.ts$/, ".js"));
-        // console.log(sourceFile);
 
         const targetDir = path.dirname(targetFile);
         fs.mkdirSync(targetDir, { recursive: true });
@@ -74,7 +75,6 @@ export function vitePluginElectronTs(options: Options) {
 
     const files = fs.readdirSync(dirPath);
     for (const file of files) {
-      console.log({ dirPath, file });
       const filePath = path.join(dirPath, file);
       const stats = fs.statSync(filePath);
 
@@ -82,7 +82,6 @@ export function vitePluginElectronTs(options: Options) {
         const tmp = readDirRecursively(filePath); // 递归进入子目录
         filesToCompile = [...filesToCompile, ...tmp];
       } else if (filePath.endsWith(".ts") && filter(file)) {
-        console.log({ filePath });
         filesToCompile.push(filePath); // 如果是 .ts 文件，则添加到列表
       }
     }

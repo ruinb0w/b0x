@@ -2,7 +2,6 @@ import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
 import { createMenu } from "./menu";
 import { useIpc } from "./libs/ipcHub";
 import { join } from "node:path";
-// ts compiler will transform path to path.default, so we use join directly
 import { usePty } from "./libs/pty";
 
 let win: BrowserWindow | null;
