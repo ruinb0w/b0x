@@ -6,9 +6,9 @@ a dev suit
 
 ### common
 
-- [] use dynamic component replace vue-router
+- [ ] use dynamic component replace vue-router
 
 ### terminal
 
-- [] remove sidebar
-- [] add shortcuts
+- [ ] remove sidebar
+- [ ] add shortcuts
