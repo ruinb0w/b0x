@@ -1,4 +1,5 @@
 import type { App } from "./type";
+import type { ITerminalOptions } from "@xterm/xterm";
 
 export const APPS: App[] = [
   { id: 1, name: "Web", path: "/web", componentPath: "WebPage/WebPage" },
@@ -17,4 +18,12 @@ export const AI_CONFIGS = {
     URL: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
     TOKEN: "sk-d66e79d5111843c19788a84fc6d9b2cb",
   },
+};
+
+export const TERMINAL_CONF: ITerminalOptions = {
+  cursorBlink: true,
+  disableStdin: false,
+  fontSize: 16,
+  fontFamily: "GeistMono Nerd Font",
+  theme: { background: "#222835" },
 };
