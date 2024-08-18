@@ -13,6 +13,7 @@ onMounted(() => {
 <template>
   <div class="terminal-page">
     <div class="tabs">
+      <i class="tab iconfont icon-27CIRCLE" @click="xterm.createPty"></i>
       <div
         :class="['tab', { active: xterm.current.value?.pid == item.pid }]"
         @click="xterm.switchCurrent(item.pid)"
@@ -21,7 +22,6 @@ onMounted(() => {
       >
         {{ item.title }}
       </div>
-      <div class="tab" @click="xterm.createPty">add</div>
     </div>
     <div class="terminal-wrapper" :style="`background: ${TERMINAL_CONF.theme?.background}`">
       <div
@@ -53,7 +53,10 @@ onMounted(() => {
       font-size: 0.8rem;
     }
     .tab.active {
-      font-weight: bold;
+      text-shadow: 0.25px 0px 0.1px, -0.25px 0px 0.1px;
+    }
+    .tab.iconfont {
+      font-size: 1rem;
     }
   }
   .terminal-wrapper {
