@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useXterm } from "./lib";
+import { TERMINAL_CONF } from "@/config";
 
 const xterm = useXterm();
 
@@ -22,12 +23,14 @@ onMounted(() => {
       </div>
       <div class="tab" @click="xterm.createPty">add</div>
     </div>
-    <div
-      v-for="(item, i) in xterm.terminals.value"
-      v-show="xterm.current.value?.pid == item.pid"
-      :key="i"
-      :class="['terminal-container', `pid-${item.pid}`]"
-    ></div>
+    <div class="terminal-wrapper" :style="`background: ${TERMINAL_CONF.theme?.background}`">
+      <div
+        v-for="(item, i) in xterm.terminals.value"
+        v-show="xterm.current.value?.pid == item.pid"
+        :key="i"
+        :class="['terminal-container', `pid-${item.pid}`]"
+      ></div>
+    </div>
   </div>
 </template>
 
@@ -53,8 +56,15 @@ onMounted(() => {
       font-weight: bold;
     }
   }
-  .terminal-container {
+  .terminal-wrapper {
     flex: 1;
+    overflow: hidden;
+    display: flex;
+    padding: 10px;
+    box-sizing: border-box;
+    .terminal-container {
+      flex: 1;
+    }
   }
 }
 </style>

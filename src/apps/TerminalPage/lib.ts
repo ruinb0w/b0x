@@ -18,10 +18,10 @@ export interface Xterm {
 export function useXterm() {
   const terminals = ref<Xterm[]>([]);
   const current = ref<Xterm>();
+  const fitAddon = new FitAddon();
 
   window.ipcRenderer.on("pty-list", (_event, data: { list: Pty[]; newPid?: number }) => {
     const { list, newPid } = data;
-    console.log("pty-list", list);
     if (!newPid) return;
     terminals.value.push({ pid: newPid, title: "", terminal: null });
     nextTick(() => {
@@ -31,14 +31,12 @@ export function useXterm() {
 
   window.ipcRenderer.on("xterm-write", (_event, data: { content: string; pid: number }) => {
     const { content, pid } = data;
-    console.log("xterm-write", data);
     const target = terminals.value.find((term) => term.pid == pid);
     target?.terminal?.write(content);
   });
 
   function createXterm(pid: number) {
     const container = document.querySelector(`.terminal-container.pid-${pid}`);
-    console.log("container", container);
     if (!container) return;
     const term = new Terminal({
       cursorBlink: true,
@@ -47,12 +45,8 @@ export function useXterm() {
       fontFamily: "GeistMono Nerd Font",
       theme: { background: "#222835" },
     });
-    const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.open(container as HTMLElement);
-    term.onResize((size) => {
-      term.resize(size.cols, size.rows);
-    });
     term.onData((content: any) => {
       window.ipcRenderer.send("pty-write", { content, pid });
     });
@@ -71,7 +65,10 @@ export function useXterm() {
     window.addEventListener("resize", () => {
       fitAddon.fit();
     });
-    fitAddon.fit();
+
+    setTimeout(() => {
+      fitAddon.fit();
+    }, 100);
     window.ipcRenderer.send("pty-write", { content: "clear\r", pid });
     const target = terminals.value.find((term) => term.pid == pid);
     if (!target) return;
@@ -115,7 +112,6 @@ export function injectCombinationKeyHandler(xterm: Terminal) {
         }
         input = input.substring(0, cursor) + data + input.substring(cursor);
         cursor += data.length;
-        console.log(cursor, input);
       });
     }
     return true;
