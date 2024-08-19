@@ -10,7 +10,6 @@ export function usePty(win: BrowserWindow | null) {
   const ptys: pty.IPty[] = [];
 
   function genPty() {
-    console.log("genPty");
     const ptyProcess = pty.spawn(shell, [], {
       name: "xterm-color",
       cols: 80,
@@ -22,9 +21,10 @@ export function usePty(win: BrowserWindow | null) {
     ptyProcess.onData((content: string) => {
       win?.webContents.send("xterm-write", { content, pid: ptyProcess.pid });
     });
-
+    ptyProcess.onExit((data) => {
+      console.log("onExit", data);
+    });
     ptys.push(ptyProcess);
-
     return ptyProcess;
   }
   ipcMain.on("pty-write", (_event, data: { content: string; pid: number }) => {
@@ -57,9 +57,10 @@ export function usePty(win: BrowserWindow | null) {
     });
   });
   ipcMain.on("pty-remove", (_event, pid: number) => {
+    console.log("pty-remove", pid);
     const targetIndex = ptys.findIndex((pty) => pty.pid == pid);
     if (targetIndex == -1) return;
-    ptys[targetIndex].kill();
+    ptys[targetIndex].pause();
     ptys.splice(targetIndex, 1);
   });
   ipcMain.on("pty-list", (event) => {

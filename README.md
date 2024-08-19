@@ -10,5 +10,6 @@ a dev suit
 
 ### terminal
 
-- [ ] remove sidebar
+- [x] close terminal
 - [ ] add shortcuts
+- [ ] fix pty.kill(), now use pty.pause()

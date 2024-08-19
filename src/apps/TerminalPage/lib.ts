@@ -85,7 +85,24 @@ export function useXterm() {
     window.ipcRenderer.send("pty-create");
   }
   function removePty(pid: number) {
+    const targetIndex = terminals.value.findIndex((term) => term.pid == pid);
+    if (targetIndex == -1) return;
+    const disposedTerminal = terminals.value.splice(targetIndex, 1)[0];
+    disposedTerminal.terminal?.dispose();
     window.ipcRenderer.send("pty-remove", pid);
+    current.value = undefined;
+    // if (terminals.value.length) {
+    //   current.value = undefined;
+    //   // switchCurrent(terminals.value[0].pid);
+    // }
+    // if (terminals.value.length > 0) {
+    //   const prevIndex = targetIndex >= 1 ? targetIndex - 1 : 0;
+    //   console.log("prevterminal--", terminals.value[prevIndex].pid);
+    //   console.log("prevterminal##", terminals.value);
+    //   switchCurrent(terminals.value[prevIndex].pid);
+    // } else {
+    //   current.value = undefined;
+    // }
   }
 
   return { createXterm, terminals, current, switchCurrent, createPty, removePty };
