@@ -19,6 +19,7 @@ export function useXterm() {
   const terminals = ref<Xterm[]>([]);
   const current = ref<Xterm>();
   const fitAddon = new FitAddon();
+  const throttledCreatePty = throttle(createPty, 1000);
 
   window.ipcRenderer.on("pty-list", (_event, data: { list: Pty[]; newPid?: number }) => {
     const { list, newPid } = data;
@@ -46,6 +47,7 @@ export function useXterm() {
       theme: { background: "#222835" },
     });
     term.loadAddon(fitAddon);
+    injectXtermShortcuts({ terminal: term, pid, title: "" });
     term.open(container as HTMLElement);
     term.onData((content: any) => {
       window.ipcRenderer.send("pty-write", { content, pid });
@@ -80,6 +82,9 @@ export function useXterm() {
     const target = terminals.value.find((term) => term.pid == pid);
     if (!target) return;
     current.value = target;
+    nextTick(() => {
+      target.terminal?.focus();
+    });
   }
   function createPty() {
     window.ipcRenderer.send("pty-create");
@@ -90,47 +95,82 @@ export function useXterm() {
     const disposedTerminal = terminals.value.splice(targetIndex, 1)[0];
     disposedTerminal.terminal?.dispose();
     window.ipcRenderer.send("pty-remove", pid);
-    current.value = undefined;
-    // if (terminals.value.length) {
-    //   current.value = undefined;
-    //   // switchCurrent(terminals.value[0].pid);
-    // }
-    // if (terminals.value.length > 0) {
-    //   const prevIndex = targetIndex >= 1 ? targetIndex - 1 : 0;
-    //   console.log("prevterminal--", terminals.value[prevIndex].pid);
-    //   console.log("prevterminal##", terminals.value);
-    //   switchCurrent(terminals.value[prevIndex].pid);
-    // } else {
-    //   current.value = undefined;
-    // }
+    if (terminals.value.length > 0) {
+      const prevIndex = targetIndex >= 1 ? targetIndex - 1 : 0;
+      switchCurrent(terminals.value[prevIndex].pid);
+    } else {
+      current.value = undefined;
+    }
   }
 
-  return { createXterm, terminals, current, switchCurrent, createPty, removePty };
-}
+  function injectXtermShortcuts(term: Xterm) {
+    if (!term.terminal) return;
 
-export function injectCombinationKeyHandler(xterm: Terminal) {
-  let input = "";
-  let cursor = 0;
-  // handle copy
-  xterm.attachCustomKeyEventHandler((arg) => {
-    if (arg.ctrlKey && arg.key === "c" && arg.type === "keydown") {
-      const selection = xterm.getSelection();
-      if (selection) {
-        window.navigator.clipboard.writeText(selection);
+    term.terminal.attachCustomKeyEventHandler((arg) => {
+      // handle copy
+      if (arg.ctrlKey && arg.key === "c" && arg.type === "keydown") {
+        const selection = term.terminal?.getSelection();
+        if (selection) {
+          window.navigator.clipboard.writeText(selection);
+          return false;
+        }
+      }
+      // block combinationkey for DomShortcuts
+      if (
+        arg.ctrlKey &&
+        (!isNaN(Number(arg.key)) || arg.key == "t" || arg.key == "w" || arg.key == "v")
+      ) {
         return false;
       }
+      return true;
+    });
+  }
+
+  function injectDomShortcuts() {
+    const handleShortcuts = (event: any) => {
+      // switch terminal
+      if (event.ctrlKey && !isNaN(Number(event.key))) {
+        const targetPid = terminals.value[Number(event.key) - 1]?.pid;
+        targetPid && switchCurrent(targetPid);
+      }
+      // new terminal
+      if (event.ctrlKey && event.key === "t") {
+        throttledCreatePty();
+      }
+      // close terminal
+      if (event.ctrlKey && event.key == "w") {
+        current.value && removePty(current.value.pid);
+      }
+    };
+    const clearShortcuts = () => {
+      document.removeEventListener("keydown", handleShortcuts);
+    };
+    document.addEventListener("keydown", handleShortcuts);
+
+    return clearShortcuts;
+  }
+
+  return {
+    createXterm,
+    terminals,
+    current,
+    switchCurrent,
+    createPty,
+    removePty,
+    injectDomShortcuts,
+  };
+}
+
+function throttle(func: (arg: any) => void, wait: number) {
+  // let timeout: NodeJS.Timeout | null = null;
+  let previous = 0;
+
+  return (args?: any) => {
+    const now = Date.now();
+
+    if (now - previous > wait) {
+      func(args);
+      previous = now;
     }
-    if (arg.ctrlKey && arg.key === "v" && arg.type === "keydown") {
-      navigator.clipboard.readText().then((data) => {
-        xterm.write(`${data}${input.substring(cursor)}`);
-        if (input.length - cursor) {
-          // `\u001b0D` will move cursor to left once
-          xterm.write(`\u001b[${input.length - cursor}D`);
-        }
-        input = input.substring(0, cursor) + data + input.substring(cursor);
-        cursor += data.length;
-      });
-    }
-    return true;
-  });
+  };
 }

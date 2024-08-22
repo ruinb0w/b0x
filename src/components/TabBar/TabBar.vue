@@ -1,26 +1,20 @@
 <script setup lang="ts">
-import type { Tab } from "../../store/tabs/type";
-import { useTabsStore } from "../../store/tabs/tabs";
-
-const tabStore = useTabsStore();
-
-function switchTab(id: number) {
-  tabStore.switchTab(id);
-}
+const emits = defineEmits(["close", "switch"]);
+defineProps<{ current: number | null; list: { icon: string; name: string; id: number }[] }>();
 </script>
 
 <template>
   <div class="tab-bar">
     <div class="tab-box">
       <div
-        :class="['tab', { active: tabStore.current === tab.id }]"
-        v-for="tab in tabStore.tabs"
+        :class="['tab', { active: current === tab.id }]"
+        v-for="tab in list"
         :key="tab.id"
-        @click="switchTab(tab.id)"
+        @click="emits('switch', tab.id)"
       >
         <img :src="tab.icon || ''" class="icon" />
         <div class="name">{{ tab.name }}</div>
-        <i class="iconfont icon-guanbi"></i>
+        <el-icon @click="emits('close', tab.id)"><Close /></el-icon>
       </div>
     </div>
   </div>

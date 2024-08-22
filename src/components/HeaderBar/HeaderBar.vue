@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { usePlguinStore } from "../../store/plugins/plugins";
-import { APPS, Plugins } from "../../config";
-import { useComponentsStore } from "../../store/components/components";
+// import { Plugins } from "../../config";
+import { useAppStore } from "@/store/appStore/appStore";
 
-const componentsStore = useComponentsStore();
+const appStore = useAppStore();
 const pluginStore = usePlguinStore();
 </script>
 
@@ -19,16 +19,16 @@ const pluginStore = usePlguinStore();
         <i class="iconfont icon-search" />
       </div>
       <div
-        :class="['app', { active: componentsStore.current == app.id }]"
-        v-for="app in APPS"
+        v-for="app in appStore.apps"
         :key="app.id"
-        @click="componentsStore.switchApp(app.id)"
+        :class="['app', { active: appStore.current.id == app.id }]"
+        @click="appStore.switchCurrent(app.id)"
       >
         {{ app.name }}
       </div>
     </div>
     <div class="plugins">
-      <div class="plugin" v-for="plugin in Plugins" :key="plugin.id">
+      <div class="plugin" v-for="plugin in pluginStore.plugins" :key="plugin.id">
         <i :class="['iconfont', plugin.icon]"></i>
       </div>
     </div>

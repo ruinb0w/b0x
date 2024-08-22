@@ -1,4 +1,4 @@
-import { useRouter } from "vue-router";
+// import { useRouter } from "vue-router";
 import { useHooksRegister } from "@/libs/hooksRegister";
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -6,7 +6,7 @@ import { APPS } from "@/config";
 
 export const useComponentsStore = function () {
   const hooksRegister = useHooksRegister();
-  const router = useRouter();
+  // const router = useRouter();
 
   return defineStore("components", () => {
     const apps = ref(APPS);
@@ -17,7 +17,8 @@ export const useComponentsStore = function () {
       if (!app) return;
       current.value = app.id;
       hooksRegister.runHooks("onSwitchComponent");
-      router.push(app.path);
+      console.log("switchApp");
+      // router.push(app.path);
     }
 
     window.ipcRenderer.on("switch-app", (_event, id) => {

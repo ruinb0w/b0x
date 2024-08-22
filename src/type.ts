@@ -1,6 +1,8 @@
+import type { Component } from "vue";
+
 export interface App {
   id: number;
   name: string;
   path: string;
-  componentPath: string;
+  component: Component;
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
+import { app, BrowserWindow, globalShortcut } from "electron";
 import { createMenu } from "./menu";
 import { useIpc } from "./libs/ipcHub";
 import { join } from "node:path";
@@ -22,6 +22,7 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   createWindow();
   win && createMenu(win);
+  registorGlobalShortcut();
 });
 
 // Modules to control application life and create native browser window
@@ -41,21 +42,41 @@ function createWindow() {
   useIpc(win);
   usePty(win);
 
-  // win.webContents.on("did-finish-load", () => {
-  //   win?.webContents.send("main-process-message", new Date().toLocaleString());
-  // });
+  win.once("ready-to-show", () => {
+    registorGlobalShortcut();
+  });
+  win.on("blur", () => {
+    unregisterShortcuts();
+  });
+  win.on("focus", () => {
+    registorGlobalShortcut();
+  });
 
-  win.webContents.setWindowOpenHandler((handler) => {
-    win?.webContents.send("new-window", handler.url);
+  win.webContents.setWindowOpenHandler((details) => {
+    console.log("details", details);
+    win?.webContents.send("new-window", details);
     return { action: "deny" };
   });
 
   app.on("web-contents-created", (_e, wc) => {
-    wc.setWindowOpenHandler((event: any) => {
-      win?.webContents.send("new-window", event.url);
+    console.log("web-content-create", _e, wc);
+    wc.setWindowOpenHandler((details: any) => {
+      win?.webContents.send("new-window", details);
       return { action: "deny" };
     });
   });
 
   win.loadURL("http://localhost:5173");
+}
+
+function registorGlobalShortcut() {
+  Array.from({ length: 9 }, (_, i) => {
+    globalShortcut.register(`Alt+${i}`, () => {
+      win?.webContents.send("switch-app", i - 1);
+    });
+  });
+}
+
+function unregisterShortcuts() {
+  globalShortcut.unregisterAll();
 }

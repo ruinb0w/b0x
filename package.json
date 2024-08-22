@@ -9,14 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
     "axios": "^1.7.3",
     "electron": "^31.3.1",
+    "element-plus": "^2.8.0",
     "get-installed-apps": "^1.1.0",
-    "pinia": "^2.2.0",
+    "pinia": "^2.2.2",
     "sass": "^1.77.8",
     "vue": "^3.4.31",
+    "vue-hooks-plus": "^2.2.1",
     "vue-router": "^4.4.2"
   },
   "devDependencies": {

@@ -48,10 +48,11 @@ export const useTabsStore = function (hooks?: Hooks) {
       tabs.value = tabs.value.filter((tab) => tab.id !== id);
     }
 
-    function switchTab(id: number) {
+    function switchTab(id: number, cb?: () => void) {
       if (!tabs.value.find((tab) => tab.id == id)) return;
       current.value = id;
       hooksRegister.runHooks("onSwitchTab");
+      cb && cb();
     }
 
     window.ipcRenderer.on("close-tab", () => {

@@ -1,14 +1,28 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useXterm } from "./lib";
 import { TERMINAL_CONF } from "@/config";
 import TerminalTab from "./components/TerminalTab/TerminalTab.vue";
 
+const props = defineProps<{ isVisible: boolean }>();
 const xterm = useXterm();
 
 onMounted(() => {
   xterm.createPty();
+  const clear = xterm.injectDomShortcuts();
+  onUnmounted(clear);
 });
+
+watch(
+  () => props.isVisible,
+  (isVisible) => {
+    if (!isVisible) return;
+    nextTick(() => {
+      xterm.current.value?.terminal?.focus();
+      window.dispatchEvent(new Event("resize"));
+    });
+  }
+);
 </script>
 
 <template>

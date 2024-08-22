@@ -13,3 +13,4 @@ a dev suit
 - [x] close terminal
 - [ ] add shortcuts
 - [ ] fix pty.kill(), now use pty.pause()
+- [ ] add custom command to run when startup

@@ -2,7 +2,9 @@
 // import MainView from "./components/MainView/MainView.vue";
 import HeaderBar from "./components/HeaderBar/HeaderBar.vue";
 import { usePlguinStore } from "./store/plugins/plugins";
+import { useAppStore } from "./store/appStore/appStore";
 
+const appStore = useAppStore();
 const pluginStore = usePlguinStore();
 </script>
 
@@ -10,11 +12,13 @@ const pluginStore = usePlguinStore();
   <div class="app">
     <header-bar />
     <div class="main-content">
-      <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component :is="Component" />
-        </keep-alive>
-      </router-view>
+      <component
+        v-for="app in appStore.apps"
+        :key="app.name"
+        :is="app.component"
+        v-show="app == appStore.current"
+        :is-visible="app == appStore.current"
+      />
     </div>
   </div>
   <component :is="pluginStore.current?.component"></component>

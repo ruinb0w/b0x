@@ -52,18 +52,19 @@ export function createMenu(win: Electron.BrowserWindow) {
         }),
       ],
     },
-    {
-      label: "App",
-      submenu: Array.from({ length: 5 }, (_, i) => i + 1).map((i) => {
-        return {
-          label: `app-${i}`,
-          accelerator: `CommandOrControl+Alt+${i}`,
-          click: () => {
-            win.webContents.send("switch-app", i);
-          },
-        };
-      }),
-    },
+    // {
+    //   label: "App",
+    //   submenu: Array.from({ length: 9 }, (_, i) => i).map((i) => {
+    //     console.log(i);
+    //     return {
+    //       label: `app-${i}`,
+    //       accelerator: `Shift+${i}`,
+    //       click: () => {
+    //         win.webContents.send("switch-app", i - 1);
+    //       },
+    //     };
+    //   }),
+    // },
   ];
   const menu = Menu.buildFromTemplate(MENU_TEMPLATE);
   Menu.setApplicationMenu(menu);

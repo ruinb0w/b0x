@@ -1,8 +1,11 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import TabBar from "@/components/TabBar/TabBar.vue";
+</script>
 
 <template>
   <div class="office-page">
-    <webview src="https://365.kdocs.cn" />
+    <tab-bar />
+    <webview src="https://365.kdocs.cn" allowpopups />
   </div>
 </template>
 
