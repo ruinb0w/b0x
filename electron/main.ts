@@ -1,8 +1,10 @@
-import { app, BrowserWindow, globalShortcut } from "electron";
+import { app, BrowserWindow } from "electron";
 import { createMenu } from "./menu";
 import { useIpc } from "./libs/ipcHub";
 import { join } from "node:path";
 import { usePty } from "./libs/pty";
+import { useManageData } from "./data/useManageData";
+import { useGlobalShortcuts } from "./libs/useShortcuts";
 
 let win: BrowserWindow | null;
 
@@ -22,15 +24,10 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   createWindow();
   win && createMenu(win);
-  registorGlobalShortcut();
 });
 
-// Modules to control application life and create native browser window
-
 function createWindow() {
-  console.log(__dirname);
   win = new BrowserWindow({
-    // icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: join(__dirname, "preload.js"),
       webviewTag: true,
@@ -41,16 +38,8 @@ function createWindow() {
 
   useIpc(win);
   usePty(win);
-
-  win.once("ready-to-show", () => {
-    registorGlobalShortcut();
-  });
-  win.on("blur", () => {
-    unregisterShortcuts();
-  });
-  win.on("focus", () => {
-    registorGlobalShortcut();
-  });
+  useManageData();
+  useGlobalShortcuts(win);
 
   win.webContents.setWindowOpenHandler((details) => {
     console.log("details", details);
@@ -59,7 +48,6 @@ function createWindow() {
   });
 
   app.on("web-contents-created", (_e, wc) => {
-    console.log("web-content-create", _e, wc);
     wc.setWindowOpenHandler((details: any) => {
       win?.webContents.send("new-window", details);
       return { action: "deny" };
@@ -67,16 +55,4 @@ function createWindow() {
   });
 
   win.loadURL("http://localhost:5173");
-}
-
-function registorGlobalShortcut() {
-  Array.from({ length: 9 }, (_, i) => {
-    globalShortcut.register(`Alt+${i}`, () => {
-      win?.webContents.send("switch-app", i - 1);
-    });
-  });
-}
-
-function unregisterShortcuts() {
-  globalShortcut.unregisterAll();
 }

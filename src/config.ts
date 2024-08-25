@@ -17,21 +17,21 @@ export const APPS: App[] = [
   },
   {
     id: 3,
-    name: "AI",
+    name: "Chat",
     path: "/ai",
     component: markRaw(defineAsyncComponent(() => import("./apps/AiPage/AiPage.vue"))),
-  },
-  {
-    id: 4,
-    name: "Office",
-    path: "/office",
-    component: markRaw(defineAsyncComponent(() => import("./apps/OfficePage/OfficePage.vue"))),
   },
   {
     id: 5,
     name: "File",
     path: "/file",
     component: markRaw(defineAsyncComponent(() => import("./apps/FileExplorer/FileExplorer.vue"))),
+  },
+  {
+    id: 4,
+    name: "Office",
+    path: "/office",
+    component: markRaw(defineAsyncComponent(() => import("./apps/OfficePage/OfficePage.vue"))),
   },
   {
     id: 6,

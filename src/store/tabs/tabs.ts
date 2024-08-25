@@ -1,10 +1,10 @@
-import type { Tab, RawTab, Hooks } from "./type";
-import { useHooksRegister } from "../../libs/hooksRegister";
+import type { Tab, RawTab } from "./type";
+// import { useHooksRegister } from "../../libs/hooksRegister";
 import { defineStore } from "pinia";
 import { nextTick, ref } from "vue";
 
-export const useTabsStore = function (hooks?: Hooks) {
-  const hooksRegister = useHooksRegister();
+export const useTabsStore = function () {
+  // const hooksRegister = useHooksRegister();
 
   return defineStore("tabs", () => {
     const tabs = ref<Tab[]>([]);
@@ -45,19 +45,24 @@ export const useTabsStore = function (hooks?: Hooks) {
     }
 
     function remove(id: number) {
-      tabs.value = tabs.value.filter((tab) => tab.id !== id);
+      const targetIndex = tabs.value.findIndex((tab) => tab.id == id);
+      if (targetIndex == -1) return;
+      tabs.value.splice(targetIndex, 1);
+      const prevIndex = targetIndex >= 1 ? targetIndex - 1 : 0;
+      console.log("remove", id, prevIndex);
+      switchTab(tabs.value[prevIndex].id);
     }
 
     function switchTab(id: number, cb?: () => void) {
       if (!tabs.value.find((tab) => tab.id == id)) return;
       current.value = id;
-      hooksRegister.runHooks("onSwitchTab");
+      // hooksRegister.runHooks("onSwitchTab");
       cb && cb();
     }
 
     window.ipcRenderer.on("close-tab", () => {
       console.log("closetab");
-      tabs.value = tabs.value.filter((tab) => tab.id != current.value);
+      current.value && remove(current.value);
     });
 
     window.ipcRenderer.on("switch-tab", (_e, index: number) => {
@@ -72,7 +77,7 @@ export const useTabsStore = function (hooks?: Hooks) {
       remove,
       append,
       switchTab,
-      onSwitchTab: (fn: () => void) => hooksRegister.register("onSwitchTab", fn),
+      // onSwitchTab: (fn: () => void) => hooksRegister.register("onSwitchTab", fn),
     };
   })();
 };

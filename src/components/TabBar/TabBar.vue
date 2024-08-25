@@ -50,6 +50,9 @@ defineProps<{ current: number | null; list: { icon: string; name: string; id: nu
         height: 20px;
         padding: 4px;
         margin-right: 6px;
+        border-radius: 50px;
+        background: #ffffff;
+        box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff;
       }
     }
     .tab.active {

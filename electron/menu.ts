@@ -1,4 +1,5 @@
 import { Menu } from "electron";
+import { access } from "fs";
 
 export function createMenu(win: Electron.BrowserWindow) {
   const MENU_TEMPLATE = [
@@ -50,6 +51,13 @@ export function createMenu(win: Electron.BrowserWindow) {
             },
           };
         }),
+        {
+          label: "search",
+          accelerator: "CommandOrControl+F",
+          click: () => {
+            win.webContents.send("page-search");
+          },
+        },
       ],
     },
     // {

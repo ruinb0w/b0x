@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import ConversationList from "./components/ConversationList/ConversationList.vue";
 import ConversationBox from "./components/ConversationBox/ConversationBox.vue";
+import { useHisotyStore } from "./hooks/historyStore/historyStore";
+import { onMounted } from "vue";
+
+const historyStore = useHisotyStore();
+
+onMounted(() => {
+  historyStore.requestChat();
+});
 </script>
 
 <template>
   <div class="ai-page">
+    {{ historyStore.historyList }}
     <conversation-list class="c-l" />
     <conversation-box class="c-b" />
   </div>

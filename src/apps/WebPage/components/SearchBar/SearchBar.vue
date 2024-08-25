@@ -4,16 +4,26 @@ import { ElInput } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 
 const searchContent = defineModel<string>();
+const emits = defineEmits(["active"]);
 
-function handleKeyUp(_event: any) {
-  if (_event.key != "Enter") return;
-  window.open(`https://www.google.com/search?q=${searchContent.value}`);
+// function handleKeyUp(_event: any) {
+//   window.open(`https://www.google.com/search?q=${searchContent.value}`);
+// }
+
+function handleActive(event: { key: string }) {
+  if (event.key != "Enter") return;
+  emits("active", searchContent.value);
 }
 </script>
 
 <template>
   <div class="search-bar">
-    <el-input v-model="searchContent" :prefix-icon="Search" @keyup="handleKeyUp" />
+    <el-input
+      v-model="searchContent"
+      :prefix-icon="Search"
+      @keyup="handleActive($event)"
+      autofocus
+    />
   </div>
 </template>
 
