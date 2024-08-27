@@ -6,3 +6,8 @@ export interface App {
   path: string;
   component: Component;
 }
+
+export interface KeyboardEvent {
+  key: string;
+  ctrlKey: boolean;
+}

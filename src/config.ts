@@ -45,6 +45,12 @@ export const APPS: App[] = [
     path: "/apitest",
     component: markRaw(defineAsyncComponent(() => import("./apps/ApiTest/ApiTest.vue"))),
   },
+  {
+    id: 8,
+    name: "Todo",
+    path: "/todo",
+    component: markRaw(defineAsyncComponent(() => import("./apps/TodoPage/TodoPage.vue"))),
+  },
 ];
 
 export const Plugins = [{ id: 1, name: "Todo", icon: "icon-todolist" }];

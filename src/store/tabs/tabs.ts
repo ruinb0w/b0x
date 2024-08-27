@@ -22,7 +22,6 @@ export const useTabsStore = function () {
         web?.addEventListener(
           "page-title-updated",
           (data) => {
-            console.log("page-title-updated", data);
             const tab = tabs.value.find((tab) => tab.id === id);
             if (!tab) return;
             //@ts-ignore
@@ -33,7 +32,6 @@ export const useTabsStore = function () {
         web?.addEventListener(
           "page-favicon-updated",
           (data) => {
-            console.log("page-favicon-updated", data);
             const tab = tabs.value.find((tab) => tab.id === id);
             if (!tab) return;
             //@ts-ignore
@@ -41,6 +39,23 @@ export const useTabsStore = function () {
           },
           { once: true }
         );
+        //@ts-ignore
+        web?.getWebContents().on("before-input-event", (event, input) => {
+          if (input.type !== "keyDown") return;
+
+          // Create a fake KeyboardEvent from the data provided
+          const emulatedKeyboardEvent = new KeyboardEvent("keydown", {
+            code: input.code,
+            key: input.key,
+            shiftKey: input.shift,
+            altKey: input.alt,
+            ctrlKey: input.control,
+            metaKey: input.meta,
+            repeat: input.isAutoRepeat,
+          });
+
+          // do something with the event as before
+        });
       });
     }
 
@@ -49,7 +64,6 @@ export const useTabsStore = function () {
       if (targetIndex == -1) return;
       tabs.value.splice(targetIndex, 1);
       const prevIndex = targetIndex >= 1 ? targetIndex - 1 : 0;
-      console.log("remove", id, prevIndex);
       switchTab(tabs.value[prevIndex].id);
     }
 
@@ -61,12 +75,10 @@ export const useTabsStore = function () {
     }
 
     window.ipcRenderer.on("close-tab", () => {
-      console.log("closetab");
       current.value && remove(current.value);
     });
 
     window.ipcRenderer.on("switch-tab", (_e, index: number) => {
-      console.log("switchTab", index);
       const tabId = tabs.value?.[index - 1]?.id;
       tabId && switchTab(tabId);
     });

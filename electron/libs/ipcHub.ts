@@ -2,6 +2,7 @@ import type { BrowserWindow } from "electron";
 import { ipcMain } from "electron";
 import { getApps } from "./app";
 import { exec } from "child_process";
+import { join } from "node:path";
 
 export function useIpc(win: BrowserWindow | null) {
   ipcMain.on("full-screen", () => {
@@ -12,12 +13,18 @@ export function useIpc(win: BrowserWindow | null) {
     event.reply("search-app", apps);
   });
   ipcMain.on("open-app", (_event, path: string) => {
-    console.log("path", `start '${path}'`);
     exec(`"${path}"`, (error) => {
       if (error) {
         console.error(`Error: ${error}`);
         return;
       }
     });
+  });
+  ipcMain.on("get-file-path", (ev, file) => {
+    ev.reply("get-file-path", `file://${join(__dirname, file)}`);
+  });
+  ipcMain.on("webview-keydown", (_ev, data) => {
+    console.log("webview-keydown", data);
+    win?.webContents.send("webview-keydown", data);
   });
 }

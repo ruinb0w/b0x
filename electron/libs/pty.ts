@@ -21,14 +21,10 @@ export function usePty(win: BrowserWindow | null) {
     ptyProcess.onData((content: string) => {
       win?.webContents.send("xterm-write", { content, pid: ptyProcess.pid });
     });
-    ptyProcess.onExit((data) => {
-      console.log("onExit", data);
-    });
     ptys.push(ptyProcess);
     return ptyProcess;
   }
   ipcMain.on("pty-write", (_event, data: { content: string; pid: number }) => {
-    console.log("pty-write", data);
     const { content, pid } = data;
     const target = ptys.find((pty) => pty.pid == pid);
     if (!target) return;
@@ -40,12 +36,9 @@ export function usePty(win: BrowserWindow | null) {
     if (!target) return;
     target.resize(cols, rows);
   });
-  ipcMain.on("pty-switch", (_event, pid: number) => {
-    console.log("pty-switch", pid);
-  });
+  ipcMain.on("pty-switch", (_event, pid: number) => {});
   ipcMain.on("pty-create", (event) => {
     const newPty = genPty();
-    console.log("recive-create", newPty.pid);
     event.reply("pty-list", {
       list: ptys.map((pty) => {
         return {
@@ -57,7 +50,6 @@ export function usePty(win: BrowserWindow | null) {
     });
   });
   ipcMain.on("pty-remove", (_event, pid: number) => {
-    console.log("pty-remove", pid);
     const targetIndex = ptys.findIndex((pty) => pty.pid == pid);
     if (targetIndex == -1) return;
     ptys[targetIndex].pause();

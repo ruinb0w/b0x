@@ -1,5 +1,4 @@
 import { Menu } from "electron";
-import { access } from "fs";
 
 export function createMenu(win: Electron.BrowserWindow) {
   const MENU_TEMPLATE = [
@@ -29,34 +28,6 @@ export function createMenu(win: Electron.BrowserWindow) {
           label: "webview-dev-tool",
           accelerator: "F12",
           click: () => win.webContents.send("dev-tool"),
-        },
-      ],
-    },
-    {
-      label: "Web",
-      submenu: [
-        {
-          label: "close",
-          accelerator: "CommandOrControl+W",
-          click: () => {
-            win.webContents.send("close-tab");
-          },
-        },
-        ...Array.from({ length: 5 }, (_, i) => i + 1).map((i) => {
-          return {
-            label: `tab-${i}`,
-            accelerator: `CommandOrControl+${i}`,
-            click: () => {
-              win.webContents.send("switch-tab", i);
-            },
-          };
-        }),
-        {
-          label: "search",
-          accelerator: "CommandOrControl+F",
-          click: () => {
-            win.webContents.send("page-search");
-          },
         },
       ],
     },

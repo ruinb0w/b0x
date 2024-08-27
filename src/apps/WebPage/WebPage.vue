@@ -1,12 +1,29 @@
 <script setup lang="ts">
 import { useTabsStore } from "../../store/tabs/tabs";
-import { useWeb } from "./lib";
+import { useWeb, usePreloadPath, useShortcuts } from "./lib";
+import { onMounted, watch } from "vue";
 import SearchBar from "./components/SearchBar/SearchBar.vue";
 import PageNavigator from "./components/PageNavigator/PageNavigator.vue";
 import TabBar from "../../components/TabBar/TabBar.vue";
 
+const props = defineProps<{ isVisible: boolean }>();
 const tabStore = useTabsStore();
 const web = useWeb(tabStore);
+const preloadPath = usePreloadPath();
+const shortcuts = useShortcuts(tabStore, web);
+
+onMounted(() => {
+  shortcuts.listenShortcuts();
+  preloadPath.reuqestPreloadPath();
+});
+
+watch(
+  () => props.isVisible,
+  (isVisible) => {
+    if (!isVisible) return;
+    shortcuts.unlistenShortcuts();
+  }
+);
 </script>
 
 <template>
@@ -37,6 +54,7 @@ const web = useWeb(tabStore);
         class="web"
         :src="tab.path"
         allowpopups
+        :preload="preloadPath.path.value"
       ></webview>
     </div>
   </div>

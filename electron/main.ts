@@ -32,6 +32,10 @@ function createWindow() {
       preload: join(__dirname, "preload.js"),
       webviewTag: true,
     },
+    width: 800,
+    minWidth: 800,
+    height: 600,
+    minHeight: 600,
     frame: false,
     titleBarStyle: "hidden",
   });
@@ -42,7 +46,6 @@ function createWindow() {
   useGlobalShortcuts(win);
 
   win.webContents.setWindowOpenHandler((details) => {
-    console.log("details", details);
     win?.webContents.send("new-window", details);
     return { action: "deny" };
   });

@@ -4,7 +4,7 @@ interface Web {
   findInPage(text: string, options?: { findNext: boolean }): void;
   stopFindInPage(action: "clearSelection"): void;
 }
-
+import type { KeyboardEvent } from "@/type";
 import type { HandlerDetails } from "electron";
 import type { useTabsStore } from "@/store/tabs/tabs";
 import { ref } from "vue";
@@ -27,20 +27,19 @@ export function useWeb(tabStore: ReturnType<typeof useTabsStore>) {
     tabStore.append({ icon: "", name: "", path: detail.url });
   });
   window.ipcRenderer.on("dev-tool", () => {
-    console.log("dev-tool");
     const webview = document.querySelector(`#web-${tabStore.current}`);
     //@ts-ignore
     webview?.openDevTools();
   });
 
-  window.ipcRenderer.on("page-search", () => {
+  function toggleSearch() {
     if (showSearch.value) {
       const id = `#web-${tabStore.current}`;
       const web = document.querySelector(id) as unknown as Web;
       web.stopFindInPage("clearSelection");
     }
     showSearch.value = !showSearch.value;
-  });
+  }
 
   function handleBack() {
     const id = `#web-${tabStore.current}`;
@@ -51,7 +50,6 @@ export function useWeb(tabStore: ReturnType<typeof useTabsStore>) {
   function handleSwtichTab(id: number) {
     tabStore.switchTab(id, () => {
       const currentWeb = tabStore.tabs.find((id) => id == id);
-      console.log("currentWeb", currentWeb);
       urlContent.value = currentWeb?.path || "";
     });
   }
@@ -74,7 +72,6 @@ export function useWeb(tabStore: ReturnType<typeof useTabsStore>) {
     const id = `#web-${tabStore.current}`;
     const web = document.querySelector(id) as unknown as Web;
     const result = web.findInPage(content, { findNext: true });
-    console.log("result", result);
   }
 
   return {
@@ -86,5 +83,52 @@ export function useWeb(tabStore: ReturnType<typeof useTabsStore>) {
     showSearch,
     handleOpen,
     handleSearch,
+    toggleSearch,
+  };
+}
+
+export function useTab() {}
+
+export function usePreloadPath() {
+  const path = ref("");
+
+  window.ipcRenderer.on("get-file-path", (_ev, data) => {
+    path.value = data;
+  });
+
+  function reuqestPreloadPath() {
+    window.ipcRenderer.send("get-file-path", "webpage_preload.js");
+  }
+
+  return { path, reuqestPreloadPath };
+}
+
+export function useShortcuts(
+  tabStore: ReturnType<typeof useTabsStore>,
+  web: ReturnType<typeof useWeb>
+) {
+  function handleKeydown(_: any, data: KeyboardEvent) {
+    if (!data.ctrlKey) return;
+    if (Number(data.key) > 0) {
+      const id = tabStore.tabs?.[Number(data.key) - 1]?.id;
+      id && tabStore.switchTab(id);
+    } else if (data.key == "w") {
+      tabStore.current && tabStore.remove(tabStore.current);
+    } else if (data.key == "f") {
+      web.toggleSearch();
+    }
+  }
+
+  function listenShortcuts() {
+    window.ipcRenderer.on("webview-keydown", handleKeydown);
+  }
+  function unlistenShortcuts() {
+    window.ipcRenderer.off("webview-keydown", handleKeydown);
+  }
+
+  return {
+    handleKeydown,
+    listenShortcuts,
+    unlistenShortcuts,
   };
 }
