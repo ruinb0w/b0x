@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const emits = defineEmits(["close", "switch"]);
+const emits = defineEmits(["close", "switch", "seperate"]);
 defineProps<{ current: number | null; list: { icon: string; name: string; id: number }[] }>();
 </script>
 
@@ -14,6 +14,7 @@ defineProps<{ current: number | null; list: { icon: string; name: string; id: nu
       >
         <img :src="tab.icon || ''" class="icon" />
         <div class="name">{{ tab.name }}</div>
+        <el-icon @click="emits('seperate', tab.id)"><CopyDocument /></el-icon>
         <el-icon @click="emits('close', tab.id)"><Close /></el-icon>
       </div>
     </div>

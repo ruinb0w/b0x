@@ -59,6 +59,7 @@ export const AI_CONFIGS = {
   QW: {
     URL: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
     TOKEN: "sk-d66e79d5111843c19788a84fc6d9b2cb",
+    MODEL: "qwen2-1.5b-instruct",
   },
 };
 
@@ -68,4 +69,9 @@ export const TERMINAL_CONF: ITerminalOptions = {
   fontSize: 16,
   fontFamily: "GeistMono Nerd Font",
   theme: { background: "#222835" },
+};
+
+export const OFFICE = {
+  HOME: "https://365.kdocs.cn",
+  URLS: ["https://365.kdocs.cn", "https://www.kdocs.cn"],
 };

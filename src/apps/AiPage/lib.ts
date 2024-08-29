@@ -1,41 +1,102 @@
-import axios from "axios";
-// import { stdout } from "process";
+import type { Conversation, Message } from "./type";
 import { AI_CONFIGS } from "@/config";
+import { ref } from "vue";
 
-export interface Message {
-  role: "system" | "user";
-  content: string;
+const DEFAULT_TITLE = "新的对话";
+
+export function useChat(
+  model: (messages: Message[], processChunk: (chunk: string) => void) => void
+) {
+  const conversationList = ref<Conversation[]>([]);
+  const currentConversation = ref<Conversation>();
+  const message = ref("");
+
+  function createConversation() {
+    const id = Date.now();
+    conversationList.value.push({
+      id,
+      title: DEFAULT_TITLE,
+      messages: [],
+    });
+    switchCurrent(id);
+  }
+
+  function removeConversation(id: number) {
+    const index = conversationList.value.findIndex((item) => item.id === id);
+    if (index == -1) return;
+    conversationList.value.splice(index, 1);
+    switchCurrent(conversationList.value[0]?.id);
+  }
+
+  function switchCurrent(id: number) {
+    currentConversation.value = conversationList.value.find((item) => item.id === id);
+  }
+
+  function makeQuestion() {
+    if (!currentConversation.value) createConversation();
+    if (!currentConversation.value) return;
+
+    if (currentConversation.value.title == DEFAULT_TITLE) {
+      currentConversation.value.title = message.value;
+    }
+    currentConversation.value.messages.push({ content: message.value, role: "user" });
+    const messages = currentConversation.value?.messages;
+    if (!messages) return;
+    messages.push({ content: "", role: "assistant" });
+    model(messages, (chunk: string) => {
+      messages[messages.length - 1].content += chunk;
+    });
+    message.value = "";
+  }
+
+  return {
+    conversationList,
+    currentConversation,
+    createConversation,
+    removeConversation,
+    switchCurrent,
+    makeQuestion,
+    message,
+  };
 }
 
-export async function askQw(messages: Message[]) {
-  const res = await axios({
-    method: "POST",
-    url: AI_CONFIGS.QW.URL,
-    responseType: "stream",
+export async function askQw(messages: Message[], updateData: (data: string) => void) {
+  const res = await fetch(AI_CONFIGS.QW.URL, {
     headers: {
-      Authorization: `Bearer ${AI_CONFIGS.QW.TOKEN}`,
       "Content-Type": "application/json",
+      Authorization: `Bearer ${AI_CONFIGS.QW.TOKEN}`,
     },
-    data: {
-      model: "qwen2-1.5b-instruct",
-      stream: true,
+    method: "POST",
+    body: JSON.stringify({
+      model: AI_CONFIGS.QW.MODEL,
       messages,
-    },
+      stream: true,
+    }),
   }).catch((err) => {
-    console.log(err);
+    console.log("err", err);
   });
   if (!res) return;
-  return new Promise((resolve) => {
-    const stream = res.data;
-    stream.on("data", (chunk: any) => {
-      const rawData = chunk.toString().replace("data:", "");
+  const reader = res.body?.getReader();
+  if (!reader) return;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = new TextDecoder().decode(value);
+      let data = "";
       try {
-        const data = JSON.parse(rawData);
-        // stdout.write(data.choices[0].delta.content);
-      } catch (_err) {}
-    });
-    stream.on("end", () => {
-      resolve("ok");
-    });
-  });
+        data = JSON.parse(chunk.split("data:")[1]).choices[0].delta.content;
+      } catch (err) {
+        console.log(err);
+      }
+      console.log("data", data);
+      updateData(data);
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
+
+// function processChunk(chunk: string) {
+//   console.log("Received:", chunk);
+// }

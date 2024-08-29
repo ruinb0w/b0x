@@ -8,9 +8,10 @@ import type { KeyboardEvent } from "@/type";
 import type { HandlerDetails } from "electron";
 import type { useTabsStore } from "@/store/tabs/tabs";
 import { ref } from "vue";
+import { OFFICE } from "@/config";
 
 export function isIgnore(url: string) {
-  const IGNORE_REF_LIST = ["365.kdocs.cn"];
+  const IGNORE_REF_LIST = [...OFFICE.URLS];
 
   return IGNORE_REF_LIST.some((item) => {
     return url.includes(item);

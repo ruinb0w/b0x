@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import ConversationList from "./components/ConversationList/ConversationList.vue";
 import ConversationBox from "./components/ConversationBox/ConversationBox.vue";
-import { useHisotyStore } from "./hooks/historyStore/historyStore";
 import { onMounted } from "vue";
+import { useChat, askQw } from "./lib";
 
-const historyStore = useHisotyStore();
-
+const chat = useChat(askQw);
 onMounted(() => {
-  historyStore.requestChat();
+  if (!chat.currentConversation.value) {
+    chat.createConversation();
+  }
 });
 </script>
 
 <template>
   <div class="ai-page">
-    {{ historyStore.historyList }}
-    <conversation-list class="c-l" />
-    <conversation-box class="c-b" />
+    <conversation-list
+      class="c-l"
+      :conversation-list="chat.conversationList.value"
+      :current-conversation="chat.currentConversation.value"
+      @create="chat.createConversation"
+      @close="chat.removeConversation"
+      @switch="chat.switchCurrent"
+    />
+    <conversation-box
+      class="c-b"
+      :conversation="chat.currentConversation.value"
+      @send="chat.makeQuestion"
+      v-model="chat.message.value"
+    />
   </div>
 </template>
 
@@ -39,6 +51,8 @@ onMounted(() => {
   .c-l {
     flex: 1;
     margin-right: 10px;
+    overflow: hidden;
+    max-width: 200px;
   }
   .c-b {
     flex: 4;

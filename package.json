@@ -16,6 +16,7 @@
     "electron": "^31.3.1",
     "element-plus": "^2.8.0",
     "get-installed-apps": "^1.1.0",
+    "marked": "^14.1.0",
     "pinia": "^2.2.2",
     "sass": "^1.77.8",
     "vue": "^3.4.31",

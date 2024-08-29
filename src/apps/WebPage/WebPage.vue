@@ -44,6 +44,7 @@ watch(
         :current="tabStore.current"
         :list="tabStore.tabs"
         @switch="web.handleSwtichTab"
+        @seperate="tabStore.seperateWindow"
         @close="tabStore.remove"
       />
       <webview
@@ -55,6 +56,7 @@ watch(
         :src="tab.path"
         allowpopups
         :preload="preloadPath.path.value"
+        disablewebsecurity
       ></webview>
     </div>
   </div>
